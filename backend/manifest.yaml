@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend
+  namespace: expense
+data:
+  DB_HOST: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: expense
+  # these are replicaset labels
+  labels:
+    app: backend
+    tier: backend
+    project: expense
+spec:
+  replicas: 1
+  selector:
+  #replicaset use those labels to identify its pods
+    matchLabels:
+      app: backend
+      tier: backend
+      project: expense
+  #pod template
+  template:
+    metadata:
+      # these are pod labels
+      labels:
+        app: backend
+        tier: backend
+        project: expense
+    spec:
+      containers:
+        - name: nginx
+          image: joindevops/backend:1.0.0
+          envFrom:
+            - configMapRef:
+                name: backend
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: backend
+  namespace: expense
+spec:
+  selector: #labels used as selectors
+    app: backend
+    tier: backend
+    project: expense
+  ports:
+    - protocol: TCP #port details
+      port: 8080
+      targetPort: 8080
